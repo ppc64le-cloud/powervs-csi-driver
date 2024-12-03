@@ -19,10 +19,11 @@ import (
 	"reflect"
 	"testing"
 
-	csi "github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/container-storage-interface/spec/lib/go/csi"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud"
 	mocks "sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud/mocks"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/util"
@@ -95,7 +96,106 @@ func TestCreateVolume(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "success normal with datasource PVC",
+			testFunc: func(t *testing.T) {
+				req := &csi.CreateVolumeRequest{
+					Name:               "clone-volume-name",
+					CapacityRange:      stdCapRange,
+					VolumeCapabilities: stdVolCap,
+					Parameters:         stdParams,
+					VolumeContentSource: &csi.VolumeContentSource{
+						Type: &csi.VolumeContentSource_Volume{
+							Volume: &csi.VolumeContentSource_VolumeSource{
+								VolumeId: "test-volume-src-100",
+							},
+						},
+					},
+				}
 
+				ctx := context.Background()
+
+				mockDisk := &cloud.Disk{
+					VolumeID:    req.Name,
+					CapacityGiB: util.BytesToGiB(stdVolSize),
+					DiskType:    cloud.DefaultVolumeType,
+				}
+				mockSrcDisk := &cloud.Disk{
+					VolumeID:    "test-volume-src-100",
+					CapacityGiB: util.BytesToGiB(stdVolSize),
+					DiskType:    cloud.DefaultVolumeType,
+				}
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+				mockCloud.EXPECT().GetDiskByNamePrefix(gomock.Eq("clone-"+req.Name)).Return(nil, nil)
+				mockCloud.EXPECT().GetDiskByID(gomock.Eq(mockSrcDisk.VolumeID)).Return(mockSrcDisk, nil)
+				mockCloud.EXPECT().CloneDisk(gomock.Eq(mockSrcDisk.VolumeID), gomock.Eq(req.Name)).Return(mockDisk, nil)
+				mockCloud.EXPECT().GetDiskByID(gomock.Eq(mockDisk.VolumeID)).Return(mockDisk, nil)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+					volumeLocks:   util.NewVolumeLocks(),
+				}
+
+				if _, err := powervsDriver.CreateVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					t.Fatalf("Unexpected error: %v", srvErr.Code())
+				}
+			},
+		},
+		{
+			name: "Create PVC with Data source - volume already exists",
+			testFunc: func(t *testing.T) {
+				req := &csi.CreateVolumeRequest{
+					Name:               "clone-volume-name",
+					CapacityRange:      &csi.CapacityRange{RequiredBytes: stdVolSize},
+					VolumeCapabilities: stdVolCap,
+					Parameters:         stdParams,
+					VolumeContentSource: &csi.VolumeContentSource{
+						Type: &csi.VolumeContentSource_Volume{
+							Volume: &csi.VolumeContentSource_VolumeSource{
+								VolumeId: "test-volume-src-100",
+							},
+						},
+					},
+				}
+
+				ctx := context.Background()
+
+				mockDisk := &cloud.Disk{
+					VolumeID:    req.Name,
+					CapacityGiB: util.BytesToGiB(stdVolSize),
+					DiskType:    cloud.DefaultVolumeType,
+				}
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+				mockCloud.EXPECT().GetDiskByNamePrefix(gomock.Eq("clone-"+req.Name)).Return(mockDisk, nil)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+					volumeLocks:   util.NewVolumeLocks(),
+				}
+
+				if _, err := powervsDriver.CreateVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					t.Fatalf("Unexpected error: %v", srvErr.Code())
+				}
+			},
+		},
 		{
 			name: "csi.VolumeCapability_AccessMode_MULTI_NODE_MULTI_WRITER",
 			testFunc: func(t *testing.T) {
