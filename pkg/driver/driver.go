@@ -51,6 +51,7 @@ const (
 type Driver struct {
 	controllerService
 	nodeService
+	csi.UnimplementedIdentityServer
 
 	srv     *grpc.Server
 	options *Options

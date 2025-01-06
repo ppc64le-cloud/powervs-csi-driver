@@ -551,19 +551,19 @@ func TestNodeExpandVolume(t *testing.T) {
 
 	tests := []struct {
 		name               string
-		request            csi.NodeExpandVolumeRequest
+		request            *csi.NodeExpandVolumeRequest
 		expectResponseCode codes.Code
 		expectMock         func(mockMounter mocks.MockMounter)
 		volumeLock         bool
 	}{
 		{
 			name:               "fail missing volumeId",
-			request:            csi.NodeExpandVolumeRequest{},
+			request:            &csi.NodeExpandVolumeRequest{},
 			expectResponseCode: codes.InvalidArgument,
 		},
 		{
 			name: "fail if volume already locked",
-			request: csi.NodeExpandVolumeRequest{
+			request: &csi.NodeExpandVolumeRequest{
 				VolumeId: "test-volume-id",
 			},
 			expectResponseCode: codes.InvalidArgument,
@@ -581,7 +581,7 @@ func TestNodeExpandVolume(t *testing.T) {
 				powervsDriver.volumeLocks.TryAcquire(test.request.VolumeId)
 				defer powervsDriver.volumeLocks.Release(test.request.VolumeId)
 			}
-			_, err := powervsDriver.NodeExpandVolume(context.Background(), &test.request)
+			_, err := powervsDriver.NodeExpandVolume(context.Background(), test.request)
 			if err != nil {
 				if test.expectResponseCode != codes.OK {
 					expectErr(t, err, test.expectResponseCode)

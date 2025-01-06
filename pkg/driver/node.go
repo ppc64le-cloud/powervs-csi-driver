@@ -70,6 +70,7 @@ type nodeService struct {
 	pvmInstanceId string
 	volumeLocks   *util.VolumeLocks
 	stats         StatsUtils
+	csi.UnimplementedNodeServer
 }
 
 // newNodeService creates a new node service
@@ -112,7 +113,7 @@ func newNodeService(driverOptions *Options) nodeService {
 }
 
 func (d *nodeService) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
-	klog.V(4).Infof("NodeStageVolume: called with args %+v", *req)
+	klog.V(4).Infof("NodeStageVolume: called with args %+v", req)
 
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
@@ -253,7 +254,7 @@ func (d *nodeService) stageVolume(wwn string, req *csi.NodeStageVolumeRequest) e
 }
 
 func (d *nodeService) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
-	klog.V(4).Infof("NodeUnstageVolume: called with args %+v", *req)
+	klog.V(4).Infof("NodeUnstageVolume: called with args %+v", req)
 
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
@@ -341,7 +342,7 @@ func (d *nodeService) deleteDevice(deviceName string) error {
 }
 
 func (d *nodeService) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
-	klog.V(4).Infof("NodeExpandVolume: called with args %+v", *req)
+	klog.V(4).Infof("NodeExpandVolume: called with args %+v", req)
 
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
@@ -412,7 +413,7 @@ func (d *nodeService) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandV
 }
 
 func (d *nodeService) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
-	klog.V(4).Infof("NodePublishVolume: called with args %+v", *req)
+	klog.V(4).Infof("NodePublishVolume: called with args %+v", req)
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
@@ -468,7 +469,7 @@ func (d *nodeService) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 }
 
 func (d *nodeService) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
-	klog.V(4).Infof("NodeUnpublishVolume: called with args %+v", *req)
+	klog.V(4).Infof("NodeUnpublishVolume: called with args %+v", req)
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
@@ -498,7 +499,7 @@ func (d *nodeService) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpu
 func (d *nodeService) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVolumeStatsRequest) (*csi.NodeGetVolumeStatsResponse, error) {
 	var resp *csi.NodeGetVolumeStatsResponse
 	if req != nil {
-		klog.V(4).Infof("NodeGetVolumeStats: called with args %+v", *req)
+		klog.V(4).Infof("NodeGetVolumeStats: called with args %+v", req)
 	}
 
 	if req == nil || req.VolumeId == "" {
@@ -567,7 +568,7 @@ func (d *nodeService) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVo
 }
 
 func (d *nodeService) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
-	klog.V(4).Infof("NodeGetCapabilities: called with args %+v", *req)
+	klog.V(4).Infof("NodeGetCapabilities: called with args %+v", req)
 	var caps []*csi.NodeServiceCapability
 	for _, cap := range nodeCaps {
 		c := &csi.NodeServiceCapability{
@@ -583,7 +584,7 @@ func (d *nodeService) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetC
 }
 
 func (d *nodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
-	klog.V(4).Infof("NodeGetInfo: called with args %+v", *req)
+	klog.V(4).Infof("NodeGetInfo: called with args %+v", req)
 
 	in, err := d.cloud.GetPVMInstanceByID(d.pvmInstanceId)
 	if err != nil {

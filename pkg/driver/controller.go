@@ -31,31 +31,14 @@ import (
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/util"
 )
 
+// Supported access modes
+const (
+	SingleNodeWriter     = csi.VolumeCapability_AccessMode_SINGLE_NODE_WRITER
+	MultiNodeMultiWriter = csi.VolumeCapability_AccessMode_MULTI_NODE_MULTI_WRITER
+	MultiNodeReaderOnly  = csi.VolumeCapability_AccessMode_MULTI_NODE_READER_ONLY
+)
+
 var (
-
-	// Supported volume capabilities
-	volumeCaps = []csi.VolumeCapability_AccessMode{
-		{
-			Mode: csi.VolumeCapability_AccessMode_SINGLE_NODE_WRITER,
-		},
-		{
-			Mode: csi.VolumeCapability_AccessMode_MULTI_NODE_MULTI_WRITER,
-		},
-		{
-			Mode: csi.VolumeCapability_AccessMode_MULTI_NODE_READER_ONLY,
-		},
-	}
-
-	// Shareable volume capabilities
-	shareableVolumeCaps = []csi.VolumeCapability_AccessMode{
-		{
-			Mode: csi.VolumeCapability_AccessMode_MULTI_NODE_MULTI_WRITER,
-		},
-		{
-			Mode: csi.VolumeCapability_AccessMode_MULTI_NODE_READER_ONLY,
-		},
-	}
-
 	// controllerCaps represents the capability of controller service
 	controllerCaps = []csi.ControllerServiceCapability_RPC_Type{
 		csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
@@ -70,6 +53,7 @@ type controllerService struct {
 	cloud         cloud.Cloud
 	driverOptions *Options
 	volumeLocks   *util.VolumeLocks
+	csi.UnimplementedControllerServer
 }
 
 // Provider holds information from the cloud provider.
@@ -144,7 +128,7 @@ func newControllerService(driverOptions *Options) controllerService {
 }
 
 func (d *controllerService) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
-	klog.V(4).Infof("CreateVolume: called with args %+v", *req)
+	klog.V(4).Infof("CreateVolume: called with args %+v", req)
 	volName := req.GetName()
 	if len(volName) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume name not provided")
@@ -255,7 +239,7 @@ func (d *controllerService) CreateVolume(ctx context.Context, req *csi.CreateVol
 }
 
 func (d *controllerService) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
-	klog.V(4).Infof("DeleteVolume: called with args: %+v", *req)
+	klog.V(4).Infof("DeleteVolume: called with args: %+v", req)
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
@@ -281,7 +265,7 @@ func (d *controllerService) DeleteVolume(ctx context.Context, req *csi.DeleteVol
 }
 
 func (d *controllerService) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
-	klog.V(4).Infof("ControllerPublishVolume: called with args %+v", *req)
+	klog.V(4).Infof("ControllerPublishVolume: called with args %+v", req)
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
@@ -343,7 +327,7 @@ func (d *controllerService) ControllerPublishVolume(ctx context.Context, req *cs
 }
 
 func (d *controllerService) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
-	klog.V(4).Infof("ControllerUnpublishVolume: called with args %+v", *req)
+	klog.V(4).Infof("ControllerUnpublishVolume: called with args %+v", req)
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
@@ -380,7 +364,7 @@ func (d *controllerService) ControllerUnpublishVolume(ctx context.Context, req *
 }
 
 func (d *controllerService) ControllerGetCapabilities(ctx context.Context, req *csi.ControllerGetCapabilitiesRequest) (*csi.ControllerGetCapabilitiesResponse, error) {
-	klog.V(4).Infof("ControllerGetCapabilities: called with args %+v", *req)
+	klog.V(4).Infof("ControllerGetCapabilities: called with args %+v", req)
 	var caps []*csi.ControllerServiceCapability
 	for _, cap := range controllerCaps {
 		c := &csi.ControllerServiceCapability{
@@ -396,17 +380,17 @@ func (d *controllerService) ControllerGetCapabilities(ctx context.Context, req *
 }
 
 func (d *controllerService) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
-	klog.V(4).Infof("GetCapacity: called with args %+v", *req)
+	klog.V(4).Infof("GetCapacity: called with args %+v", req)
 	return nil, status.Error(codes.Unimplemented, "")
 }
 
 func (d *controllerService) ListVolumes(ctx context.Context, req *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
-	klog.V(4).Infof("ListVolumes: called with args %+v", *req)
+	klog.V(4).Infof("ListVolumes: called with args %+v", req)
 	return nil, status.Error(codes.Unimplemented, "")
 }
 
 func (d *controllerService) ValidateVolumeCapabilities(ctx context.Context, req *csi.ValidateVolumeCapabilitiesRequest) (*csi.ValidateVolumeCapabilitiesResponse, error) {
-	klog.V(4).Infof("ValidateVolumeCapabilities: called with args %+v", *req)
+	klog.V(4).Infof("ValidateVolumeCapabilities: called with args %+v", req)
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
@@ -434,7 +418,7 @@ func (d *controllerService) ValidateVolumeCapabilities(ctx context.Context, req 
 }
 
 func (d *controllerService) ControllerExpandVolume(ctx context.Context, req *csi.ControllerExpandVolumeRequest) (*csi.ControllerExpandVolumeResponse, error) {
-	klog.V(4).Infof("ControllerExpandVolume: called with args %+v", *req)
+	klog.V(4).Infof("ControllerExpandVolume: called with args %+v", req)
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
@@ -468,47 +452,30 @@ func (d *controllerService) ControllerExpandVolume(ctx context.Context, req *csi
 }
 
 func (d *controllerService) ControllerGetVolume(ctx context.Context, req *csi.ControllerGetVolumeRequest) (*csi.ControllerGetVolumeResponse, error) {
-	klog.V(4).Infof("ControllerGetVolume: called with args %+v", *req)
+	klog.V(4).Infof("ControllerGetVolume: called with args %+v", req)
 	return nil, status.Error(codes.Unimplemented, "")
 }
 
 func (d *controllerService) ControllerModifyVolume(ctx context.Context, req *csi.ControllerModifyVolumeRequest) (*csi.ControllerModifyVolumeResponse, error) {
-	klog.V(4).InfoS("ControllerModifyVolume: called with args %+v", *req)
+	klog.V(4).InfoS("ControllerModifyVolume: called with args %+v", req)
 	return nil, status.Error(codes.Unimplemented, "")
 }
 
 func isValidVolumeCapabilities(volCaps []*csi.VolumeCapability) bool {
-	hasSupport := func(cap *csi.VolumeCapability) bool {
-		for _, c := range volumeCaps {
-			if c.GetMode() == cap.AccessMode.GetMode() {
-				return true
-			}
-		}
-		return false
-	}
-
-	foundAll := true
 	for _, c := range volCaps {
-		if !hasSupport(c) {
-			foundAll = false
+		mode := c.AccessMode.GetMode()
+		if mode != SingleNodeWriter && mode != MultiNodeMultiWriter && mode != MultiNodeReaderOnly {
+			return false
 		}
 	}
-	return foundAll
+	return true
 }
 
 // Check if the volume is shareable
 func isShareableVolume(volCaps []*csi.VolumeCapability) bool {
-	isShareable := func(cap *csi.VolumeCapability) bool {
-		for _, c := range shareableVolumeCaps {
-			if c.GetMode() == cap.AccessMode.GetMode() {
-				return true
-			}
-		}
-		return false
-	}
-
 	for _, c := range volCaps {
-		if isShareable(c) {
+		mode := c.AccessMode.GetMode()
+		if mode == MultiNodeMultiWriter || mode == MultiNodeReaderOnly {
 			return true
 		}
 	}
