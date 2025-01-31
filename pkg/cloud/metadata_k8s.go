@@ -30,7 +30,7 @@ import (
 
 type KubernetesAPIClient func(kubeconfig string) (kubernetes.Interface, error)
 
-// Get default kubernetes API client
+// Get default kubernetes API client.
 var DefaultKubernetesAPIClient = func(kubeconfig string) (kubernetes.Interface, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
@@ -40,7 +40,7 @@ var DefaultKubernetesAPIClient = func(kubeconfig string) (kubernetes.Interface, 
 	return kubernetes.NewForConfig(config)
 }
 
-// Get instance info from kubernetes API
+// Get instance info from kubernetes API.
 func KubernetesAPIInstanceInfo(clientset kubernetes.Interface) (*Metadata, error) {
 	nodeName := os.Getenv("CSI_NODE_NAME")
 	if nodeName == "" {

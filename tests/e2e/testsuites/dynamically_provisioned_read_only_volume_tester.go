@@ -20,10 +20,10 @@ import (
 	"fmt"
 
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/kubernetes/test/e2e/framework"
-	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/driver"
-
 	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/kubernetes/test/e2e/framework"
+
+	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/driver"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -32,8 +32,8 @@ import (
 const expectedReadOnlyLog = "Read-only file system"
 
 // DynamicallyProvisionedReadOnlyVolumeTest will provision required StorageClass(es), PVC(s) and Pod(s)
-// Waiting for the PV provisioner to create a new PV
-// Testing that the Pod(s) cannot write to the volume when mounted
+// waits for the PV provisioner to create a new PV
+// tests that the Pod(s) cannot write to the volume when mounted.
 type DynamicallyProvisionedReadOnlyVolumeTest struct {
 	CSIDriver driver.DynamicPVTestDriver
 	Pods      []PodDetails

@@ -17,17 +17,17 @@ limitations under the License.
 package testsuites
 
 import (
-	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/driver"
-
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
+
+	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/driver"
 
 	. "github.com/onsi/ginkgo/v2"
 )
 
 // DynamicallyProvisionedCollocatedPodTest will provision required StorageClass(es), PVC(s) and Pod(s)
-// Waiting for the PV provisioner to create a new PV
-// Testing if multiple Pod(s) can write simultaneously
+// waits for the PV provisioner to create a new PV and
+// tests if multiple Pod(s) can write simultaneously.
 type DynamicallyProvisionedCollocatedPodTest struct {
 	CSIDriver    driver.DynamicPVTestDriver
 	Pods         []PodDetails
@@ -54,5 +54,4 @@ func (t *DynamicallyProvisionedCollocatedPodTest) Run(client clientset.Interface
 		tpod.WaitForRunning()
 		nodeName = tpod.pod.Spec.NodeName
 	}
-
 }

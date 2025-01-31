@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
+
 	"k8s.io/klog/v2"
 )
 
@@ -87,7 +88,7 @@ func (r *Remote) SetupNewDriver(endpoint string) (err error) {
 	return nil
 }
 
-// Create binary and archive it
+// Create binary and archive it.
 func (r *Remote) createDriverArchive() (err error) {
 	tarDir, err := os.MkdirTemp("", "powervscsidriver")
 	if err != nil {
@@ -137,10 +138,10 @@ func setupBinariesLocally(tarDir string) error {
 	return nil
 }
 
-// Upload archive to instance and run binaries
-// TODO: grep pid of driver and kill it later
-// Also, use random port
-// May be track the job id if given
+// Upload archive to instance and run binaries.
+// TODO: grep pid of driver and kill it later.
+// TODO: use random port.
+// May be track the job id if given.
 func (r *Remote) uploadAndRun(endpoint string) error {
 	r.remoteDir = filepath.Join("/tmp", "powervs-csi-"+time.Now().Format(timestampFormat))
 

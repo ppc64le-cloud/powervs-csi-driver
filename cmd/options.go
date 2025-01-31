@@ -16,17 +16,17 @@ limitations under the License.
 
 package main
 
-//DONE
+// DONE.
 
 import (
 	"flag"
 	"os"
 	"strings"
 
+	"k8s.io/klog/v2"
+
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/cmd/options"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/driver"
-
-	"k8s.io/klog/v2"
 )
 
 // Options is the combined set of options for all operating modes.
@@ -38,7 +38,7 @@ type Options struct {
 	*options.NodeOptions
 }
 
-// used for testing
+// used for testing.
 var osExit = os.Exit
 
 // GetOptions parses the command line options and returns a struct that contains
@@ -63,7 +63,7 @@ func GetOptions(fs *flag.FlagSet) *Options {
 
 		switch {
 		case cmd == string(driver.ControllerMode):
-			//controllerOptions.AddFlags(fs)
+			// controllerOptions.AddFlags(fs)
 			args = os.Args[2:]
 			mode = driver.ControllerMode
 
@@ -73,12 +73,12 @@ func GetOptions(fs *flag.FlagSet) *Options {
 			mode = driver.NodeMode
 
 		case cmd == string(driver.AllMode):
-			//controllerOptions.AddFlags(fs)
+			// controllerOptions.AddFlags(fs)
 			nodeOptions.AddFlags(fs)
 			args = os.Args[2:]
 
 		case strings.HasPrefix(cmd, "-"):
-			//controllerOptions.AddFlags(fs)
+			// controllerOptions.AddFlags(fs)
 			nodeOptions.AddFlags(fs)
 			args = os.Args[1:]
 
@@ -95,7 +95,7 @@ func GetOptions(fs *flag.FlagSet) *Options {
 	if *version {
 		info, err := driver.GetVersionJSON()
 		if err != nil {
-			klog.Fatalf("error while retriving the CSI driver version. err: %v", err)
+			klog.Fatalf("error while retrieving the CSI driver version. err: %v", err)
 		}
 		klog.Info(info)
 		osExit(0)

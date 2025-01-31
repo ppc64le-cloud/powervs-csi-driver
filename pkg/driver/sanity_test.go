@@ -88,22 +88,22 @@ func createDir(targetPath string) (string, error) {
 	return targetPath, nil
 }
 
-// Fake State interface methods implementation for getting
+// Fake State interface methods implementation for getting.
 type MockStatSanity struct {
 	targetPath string
 }
 
-// FSInfo ...
+// FSInfo.
 func (su *MockStatSanity) FSInfo(path string) (int64, int64, int64, int64, int64, int64, error) {
 	return 1, 1, 1, 1, 1, 1, nil
 }
 
-// DeviceInfo ...
+// DeviceInfo.
 func (su *MockStatSanity) DeviceInfo(path string) (int64, error) {
 	return 1, nil
 }
 
-// IsBlockDevice ..
+// IsBlockDevice.
 func (su *MockStatSanity) IsBlockDevice(devicePath string) (bool, error) {
 	if !strings.Contains(devicePath, su.targetPath) {
 		return false, errors.New("not a valid path")
@@ -140,7 +140,6 @@ func (p *fakeCloudProvider) GetPVMInstanceByName(name string) (*cloud.PVMInstanc
 		DiskType: "tier3",
 		Name:     name,
 	}, nil
-
 }
 
 func (p *fakeCloudProvider) GetPVMInstanceByID(instanceID string) (*cloud.PVMInstance, error) {
@@ -152,16 +151,13 @@ func (p *fakeCloudProvider) GetPVMInstanceByID(instanceID string) (*cloud.PVMIns
 }
 
 func (p *fakeCloudProvider) GetPVMInstanceDetails(instanceID string) (*models.PVMInstance, error) {
-
 	return &models.PVMInstance{
 		PvmInstanceID: &instanceID,
 		ServerName:    &strings.Split(instanceID, "-")[0],
 	}, nil
-
 }
 
 func (p *fakeCloudProvider) UpdateStoragePoolAffinity(instanceID string) error {
-
 	return nil
 }
 
@@ -169,7 +165,7 @@ func (c *fakeCloudProvider) CreateDisk(volumeName string, diskOptions *cloud.Dis
 	r1 := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	if existingDisk, ok := c.disks[volumeName]; ok {
-		//Already Created volume
+		// Already Created volume
 		if existingDisk.Disk.CapacityGiB != util.BytesToGiB(diskOptions.CapacityBytes) {
 			return nil, errors.New("disk Already exists")
 		} else {
@@ -225,14 +221,13 @@ func (c *fakeCloudProvider) WaitForCloneStatus(cloneTaskId string) error {
 }
 
 func (c *fakeCloudProvider) GetDiskByName(name string) (*cloud.Disk, error) {
-	var disks []*fakeDisk
+	disks := make([]*fakeDisk, 0, len(c.disks))
 	for _, d := range c.disks {
 		disks = append(disks, d)
 	}
 	if len(disks) > 1 {
 		return nil, cloud.ErrAlreadyExists
 	} else if len(disks) == 1 {
-
 		return disks[0].Disk, nil
 	}
 	return nil, nil

@@ -27,7 +27,6 @@ func TestGetOptions(t *testing.T) {
 		t *testing.T,
 		additionalArgs []string,
 		withServerOptions bool,
-		withControllerOptions bool,
 		withNodeOptions bool,
 	) *Options {
 		flagSet := flag.NewFlagSet("test-flagset", flag.ContinueOnError)
@@ -85,7 +84,7 @@ func TestGetOptions(t *testing.T) {
 		{
 			name: "no controller mode given - expect all mode",
 			testFunc: func(t *testing.T) {
-				options := testFunc(t, nil, true, true, true)
+				options := testFunc(t, nil, true, true)
 
 				if options.DriverMode != driver.AllMode {
 					t.Fatalf("expected driver mode to be %q but it is %q", driver.AllMode, options.DriverMode)
@@ -96,7 +95,7 @@ func TestGetOptions(t *testing.T) {
 		{
 			name: "all mode given - expect all mode",
 			testFunc: func(t *testing.T) {
-				options := testFunc(t, []string{"all"}, true, true, true)
+				options := testFunc(t, []string{"all"}, true, true)
 
 				if options.DriverMode != driver.AllMode {
 					t.Fatalf("expected driver mode to be %q but it is %q", driver.AllMode, options.DriverMode)
@@ -106,7 +105,7 @@ func TestGetOptions(t *testing.T) {
 		{
 			name: "controller mode given - expect controller mode",
 			testFunc: func(t *testing.T) {
-				options := testFunc(t, []string{"controller"}, true, true, false)
+				options := testFunc(t, []string{"controller"}, true, false)
 
 				if options.DriverMode != driver.ControllerMode {
 					t.Fatalf("expected driver mode to be %q but it is %q", driver.ControllerMode, options.DriverMode)
@@ -116,7 +115,7 @@ func TestGetOptions(t *testing.T) {
 		{
 			name: "node mode given - expect node mode",
 			testFunc: func(t *testing.T) {
-				options := testFunc(t, []string{"node"}, true, false, true)
+				options := testFunc(t, []string{"node"}, true, true)
 
 				if options.DriverMode != driver.NodeMode {
 					t.Fatalf("expected driver mode to be %q but it is %q", driver.NodeMode, options.DriverMode)

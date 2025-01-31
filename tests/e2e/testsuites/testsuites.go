@@ -22,8 +22,6 @@ import (
 	"math/rand"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -37,14 +35,18 @@ import (
 	e2epodoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 	e2epv "k8s.io/kubernetes/test/e2e/framework/pv"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+
 	powervscloud "sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 const (
 	execTimeout = 10 * time.Second
 	// Some pods can take much longer to get ready due to volume attach/detach latency.
 	slowPodStartTimeout = 15 * time.Minute
-	// Description that will printed during tests
+	// Description that will printed during tests.
 	failedConditionDescription = "Error status code"
 )
 
@@ -123,7 +125,6 @@ func NewTestPersistentVolumeClaim(c clientset.Interface, ns *v1.Namespace, claim
 		namespace:    ns,
 		storageClass: sc,
 	}
-
 }
 
 func NewTestPersistentVolumeClaimWithDataSource(c clientset.Interface, ns *v1.Namespace, claimSize string, volumeMode VolumeMode, sc *storagev1.StorageClass, dataSource *v1.TypedLocalObjectReference) *TestPersistentVolumeClaim {
@@ -202,7 +203,7 @@ func generatePVC(namespace, storageClassName, claimSize string, volumeMode v1.Pe
 			},
 			Resources: v1.VolumeResourceRequirements{
 				Requests: v1.ResourceList{
-					v1.ResourceName(v1.ResourceStorage): resource.MustParse(claimSize),
+					v1.ResourceStorage: resource.MustParse(claimSize),
 				},
 			},
 			VolumeMode: &volumeMode,
@@ -220,11 +221,11 @@ func (t *TestPersistentVolumeClaim) ValidateProvisionedPersistentVolume() {
 	framework.ExpectNoError(err)
 
 	// Check sizes
-	expectedCapacity := t.requestedPersistentVolumeClaim.Spec.Resources.Requests[v1.ResourceName(v1.ResourceStorage)]
-	claimCapacity := t.persistentVolumeClaim.Spec.Resources.Requests[v1.ResourceName(v1.ResourceStorage)]
+	expectedCapacity := t.requestedPersistentVolumeClaim.Spec.Resources.Requests[v1.ResourceStorage]
+	claimCapacity := t.persistentVolumeClaim.Spec.Resources.Requests[v1.ResourceStorage]
 	Expect(claimCapacity.Value()).To(Equal(expectedCapacity.Value()), "claimCapacity is not equal to requestedCapacity")
 
-	pvCapacity := t.persistentVolume.Spec.Capacity[v1.ResourceName(v1.ResourceStorage)]
+	pvCapacity := t.persistentVolume.Spec.Capacity[v1.ResourceStorage]
 	Expect(pvCapacity.Value()).To(Equal(expectedCapacity.Value()), "pvCapacity is not equal to requestedCapacity")
 
 	// Check PV properties
@@ -242,7 +243,6 @@ func (t *TestPersistentVolumeClaim) ValidateProvisionedPersistentVolume() {
 			for _, v := range t.persistentVolume.Spec.NodeAffinity.Required.NodeSelectorTerms[0].MatchExpressions[0].Values {
 				Expect(t.storageClass.AllowedTopologies[0].MatchLabelExpressions[0].Values).To(ContainElement(v))
 			}
-
 		}
 	}
 }
@@ -415,16 +415,16 @@ func (t *TestDeployment) Logs() ([]byte, error) {
 }
 
 // waitForPersistentVolumeClaimDeleted waits for a PersistentVolumeClaim to be removed from the system until timeout occurs, whichever comes first.
-func waitForPersistentVolumeClaimDeleted(c clientset.Interface, ns string, pvcName string, Poll, timeout time.Duration) error {
+func waitForPersistentVolumeClaimDeleted(c clientset.Interface, ns string, pvcName string, poll, timeout time.Duration) error {
 	framework.Logf("Waiting up to %v for PersistentVolumeClaim %s to be removed", timeout, pvcName)
-	for start := time.Now(); time.Since(start) < timeout; time.Sleep(Poll) {
+	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
 		_, err := c.CoreV1().PersistentVolumeClaims(ns).Get(context.TODO(), pvcName, metav1.GetOptions{})
 		if err != nil {
 			if apierrs.IsNotFound(err) {
 				framework.Logf("Claim %q in namespace %q doesn't exist in the system", pvcName, ns)
 				return nil
 			}
-			framework.Logf("Failed to get claim %q in namespace %q, retrying in %v. Error: %v", pvcName, ns, Poll, err)
+			framework.Logf("Failed to get claim %q in namespace %q, retrying in %v. Error: %v", pvcName, ns, poll, err)
 		}
 	}
 	return fmt.Errorf("PersistentVolumeClaim %s is not removed from the system within %v", pvcName, timeout)
@@ -482,7 +482,7 @@ func (t *TestPod) WaitForRunning() {
 }
 
 // Ideally this would be in "k8s.io/kubernetes/test/e2e/framework"
-// Similar to framework.WaitForPodSuccessInNamespaceSlow
+// similar to framework.WaitForPodSuccessInNamespaceSlow.
 var podFailedCondition = func(pod *v1.Pod) (bool, error) {
 	switch pod.Status.Phase {
 	case v1.PodFailed:
@@ -541,7 +541,7 @@ func podLogs(client clientset.Interface, name, namespace string) ([]byte, error)
 	return client.CoreV1().Pods(namespace).GetLogs(name, &v1.PodLogOptions{}).Do(context.TODO()).Raw()
 }
 
-// Method to get cloudInstanceId from Node Labels
+// Method to get cloudInstanceId from Node Labels.
 func GetInstanceMetadataFromNodeSpec(client clientset.Interface) (*powervscloud.Metadata, error) {
 	nodes, err := client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {

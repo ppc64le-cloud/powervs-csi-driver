@@ -22,7 +22,7 @@ import (
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/util"
 )
 
-// PowerVS volume types
+// PowerVS volume types.
 const (
 	VolumeTypeTier1 = "tier1"
 	VolumeTypeTier3 = "tier3"
@@ -35,7 +35,7 @@ var (
 	}
 )
 
-// Defaults
+// Defaults.
 const (
 	// DefaultVolumeSize represents the default volume size.
 	DefaultVolumeSize int64 = 10 * util.GiB
@@ -51,7 +51,7 @@ var (
 	ErrAlreadyExists = errors.New("resource already exists")
 )
 
-// Disk represents a PowerVS volume
+// Disk represents a PowerVS volume.
 type Disk struct {
 	VolumeID    string
 	DiskType    string
@@ -61,11 +61,11 @@ type Disk struct {
 	CapacityGiB int64
 }
 
-// DiskOptions represents parameters to create an PowerVS volume
+// DiskOptions represents parameters to create an PowerVS volume.
 type DiskOptions struct {
-	//PowerVS options
+	// PowerVS options
 	Shareable bool
-	//CapacityGigaBytes float64
+	// CapacityGigaBytes float64
 	CapacityBytes int64
 	VolumeType    string
 }

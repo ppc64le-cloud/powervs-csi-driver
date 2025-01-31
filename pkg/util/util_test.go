@@ -114,7 +114,6 @@ func TestParseEndpoint(t *testing.T) {
 				if err.Error() != tc.expErr.Error() {
 					t.Fatalf("Expecting err: expected %v, got %v", tc.expErr, err)
 				}
-
 			} else {
 				if err != nil {
 					t.Fatalf("err is not nil. got: %v", err)
@@ -129,7 +128,6 @@ func TestParseEndpoint(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestGetAccessModes(t *testing.T) {

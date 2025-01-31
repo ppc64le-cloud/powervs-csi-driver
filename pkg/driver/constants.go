@@ -16,20 +16,20 @@ limitations under the License.
 
 package driver
 
-//DONE
+// DONE.
 
-// constants of keys in PublishContext
+// constants of keys in PublishContext.
 const (
 	WWNKey = "wwn"
 )
 
-// constants of keys in volume parameters
+// constants of keys in volume parameters.
 const (
-	// VolumeTypeKey represents key for volume type
+	// VolumeTypeKey represents key for volume type.
 	VolumeTypeKey = "type"
 )
 
-// constants for default command line flag values
+// constants for default command line flag values.
 const (
 	DefaultCSIEndpoint = "unix://tmp/csi.sock"
 )

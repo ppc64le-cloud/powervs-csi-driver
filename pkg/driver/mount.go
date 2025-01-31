@@ -23,7 +23,7 @@ import (
 	"k8s.io/utils/exec"
 )
 
-// Mounter is an interface for mount operations
+// Mounter is an interface for mount operations.
 type Mounter interface {
 	mount.Interface
 

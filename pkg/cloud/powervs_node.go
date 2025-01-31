@@ -20,6 +20,7 @@ import (
 	"errors"
 
 	"github.com/IBM-Cloud/power-go-client/power/models"
+
 	"k8s.io/klog/v2"
 	"k8s.io/utils/ptr"
 )
@@ -75,7 +76,6 @@ func NewNodeUpdateScope(params NodeUpdateScopeParams) (scope *NodeUpdateScope, e
 
 func (p *powerVSCloud) GetPVMInstanceDetails(instanceID string) (*models.PVMInstance, error) {
 	return p.pvmInstancesClient.Get(instanceID)
-
 }
 
 func (p *powerVSCloud) UpdateStoragePoolAffinity(instanceID string) error {

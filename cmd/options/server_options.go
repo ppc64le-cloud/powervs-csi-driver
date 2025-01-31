@@ -16,7 +16,7 @@ limitations under the License.
 
 package options
 
-//DONE
+// DONE.
 
 import (
 	"flag"

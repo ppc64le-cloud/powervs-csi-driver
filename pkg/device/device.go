@@ -41,14 +41,14 @@ type LinuxDevice interface {
 	Populate(bool) error
 }
 
-// Device struct
+// Device struct.
 type Device struct {
 	Mapper string `json:"mapper,omitempty"`
 	WWN    string `json:"wwn,omitempty"`
 	Slaves int    `json:"slaves,omitempty"`
 }
 
-// NewLinuxDevice new device with given wwn
+// NewLinuxDevice new device with given wwn.
 func NewLinuxDevice(wwn string) LinuxDevice {
 	return &Device{
 		WWN: wwn,
@@ -59,7 +59,7 @@ func (d *Device) GetMapper() string {
 	return d.Mapper
 }
 
-// Populate get all linux Devices
+// Populate get all linux Devices.
 func (d *Device) Populate(needActivePath bool) error {
 	args := []string{"ls", "--target", "multipath"}
 	outBytes, err := exec.Command(dmsetupcommand, args...).CombinedOutput()
@@ -112,7 +112,7 @@ func (d *Device) Populate(needActivePath bool) error {
 	return nil
 }
 
-// DeleteDevice delete the multipath device
+// DeleteDevice delete the multipath device.
 func (d *Device) DeleteDevice() (err error) {
 	if err := retryCleanupDevice(d); err != nil {
 		klog.Warningf("error while deleting multipath device %s: %v", d.Mapper, err)
@@ -123,9 +123,8 @@ func (d *Device) DeleteDevice() (err error) {
 	return nil
 }
 
-// CreateDevice attach and create linux devices to host
+// CreateDevice attach and create linux devices to host.
 func (d *Device) CreateDevice() (err error) {
-
 	if err = d.createLinuxDevice(); err != nil {
 		klog.Errorf("unable to create device for wwn %s", d.WWN)
 		return err
@@ -205,7 +204,7 @@ func (d *Device) createLinuxDevice() (err error) {
 	return fmt.Errorf("fc device not found for wwn %s", d.WWN)
 }
 
-// scsiHostRescan: scans all scsi hosts
+// scsiHostRescan: scans all scsi hosts.
 func scsiHostRescan() error {
 	scsiPath := "/sys/class/scsi_host/"
 	dirs, err := os.ReadDir(scsiPath)

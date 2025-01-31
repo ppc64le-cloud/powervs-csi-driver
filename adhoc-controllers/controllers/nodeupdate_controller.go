@@ -24,12 +24,13 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud"
 )
 
-// NodeUpdateReconciler reconciles a NodeUpdate object
+// NodeUpdateReconciler reconciles a NodeUpdate object.
 type NodeUpdateReconciler struct {
 	Client client.Client
 	Scheme *runtime.Scheme
@@ -41,7 +42,6 @@ type NodeUpdateReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *NodeUpdateReconciler) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	// Fetch the Node instance
 	node := corev1.Node{}
 	err := r.Client.Get(context.Background(), req.NamespacedName, &node)

@@ -24,25 +24,26 @@ import (
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud"
 	cloudmocks "sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud/mocks"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/device"
-	mocks "sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/driver/mocks"
+	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/driver/mocks"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/util"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// constants of keys in PublishContext
+// constants of keys in PublishContext.
 const (
-	// devicePathKey represents key for device path in PublishContext
-	// devicePath is the device path where the volume is attached to
+	// devicePathKey represents key for device path in PublishContext.
+	// devicePath is the device path where the volume is attached to.
 	DevicePathKey = "devicePath"
 )
 
-// constants of keys in VolumeContext
+// constants of keys in VolumeContext.
 const (
-	// VolumeAttributePartition represents key for partition config in VolumeContext
-	// this represents the partition number on a device used to mount
+	// VolumeAttributePartition represents key for partition config in VolumeContext.
+	// It represents the partition number on a device used to mount.
 	VolumeAttributePartition = "partition"
+	testDir                  = "./test"
 )
 
 var (
@@ -50,7 +51,6 @@ var (
 )
 
 func TestNodeStageVolume(t *testing.T) {
-
 	var (
 		targetPath = "/tmp/test/path"
 		devicePath = "/dev/fake"
@@ -75,7 +75,6 @@ func TestNodeStageVolume(t *testing.T) {
 			mockDevice.EXPECT().Populate(false).Return(nil)
 			mockDevice.EXPECT().GetMapper().Return(devicePath).MinTimes(2)
 			mockMounter.EXPECT().IsLikelyNotMountPoint(gomock.Any()).Return(true, nil)
-
 		}
 	)
 	testCases := []struct {
@@ -884,7 +883,6 @@ func TestNodePublishVolume(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, tc.testFunc)
 	}
-
 }
 
 func TestNodeUnpublishVolume(t *testing.T) {
@@ -1124,7 +1122,6 @@ func TestNodeGetInfo(t *testing.T) {
 			if resp.GetMaxVolumesPerNode() != tc.expMaxVolumes {
 				t.Fatalf("Expected %d max volumes per node, got %d", tc.expMaxVolumes, resp.GetMaxVolumesPerNode())
 			}
-
 		})
 	}
 }
@@ -1140,7 +1137,7 @@ func TestNodeGetVolumeStats(t *testing.T) {
 				defer mockCtl.Finish()
 				mockStatUtils := mocks.NewMockStatsUtils(mockCtl)
 
-				volumePath := "./test"
+				volumePath := testDir
 				var mockCapacity int64 = 100
 				mockStatUtils.EXPECT().IsPathNotExist(volumePath).Return(false)
 				mockStatUtils.EXPECT().IsBlockDevice(volumePath).Return(true, nil)
@@ -1165,7 +1162,7 @@ func TestNodeGetVolumeStats(t *testing.T) {
 				defer mockCtl.Finish()
 				mockStatUtils := mocks.NewMockStatsUtils(mockCtl)
 
-				volumePath := "./test"
+				volumePath := testDir
 				mockStatUtils.EXPECT().IsPathNotExist(volumePath).Return(true)
 				driver := &nodeService{stats: mockStatUtils}
 
@@ -1181,7 +1178,7 @@ func TestNodeGetVolumeStats(t *testing.T) {
 				defer mockCtl.Finish()
 				mockStatUtils := mocks.NewMockStatsUtils(mockCtl)
 
-				volumePath := "./test"
+				volumePath := testDir
 				mockStatUtils.EXPECT().IsPathNotExist(volumePath).Return(false)
 				mockStatUtils.EXPECT().IsBlockDevice(volumePath).Return(false, errors.New("Error checking for block device"))
 				driver := &nodeService{stats: mockStatUtils}
@@ -1198,7 +1195,7 @@ func TestNodeGetVolumeStats(t *testing.T) {
 				defer mockCtl.Finish()
 				mockStatUtils := mocks.NewMockStatsUtils(mockCtl)
 
-				volumePath := "./test"
+				volumePath := "testDir"
 				mockStatUtils.EXPECT().IsPathNotExist(volumePath).Return(false)
 				mockStatUtils.EXPECT().IsBlockDevice(volumePath).Return(true, nil)
 				mockStatUtils.EXPECT().DeviceInfo(volumePath).Return(int64(0), errors.New("Error collecting block device info"))
@@ -1218,7 +1215,7 @@ func TestNodeGetVolumeStats(t *testing.T) {
 				defer mockCtl.Finish()
 				mockStatUtils := mocks.NewMockStatsUtils(mockCtl)
 
-				volumePath := "./test"
+				volumePath := "testDir"
 				mockStatUtils.EXPECT().IsPathNotExist(volumePath).Return(false)
 				mockStatUtils.EXPECT().IsBlockDevice(volumePath).Return(false, nil)
 				var statUnit int64 = 0

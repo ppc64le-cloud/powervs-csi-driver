@@ -22,6 +22,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
+
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/driver"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -29,7 +30,7 @@ import (
 )
 
 // PreProvisionedReadOnlyVolumeTest will provision required PV(s), PVC(s) and Pod(s)
-// Testing that the Pod(s) cannot write to the volume when mounted
+// tests that the Pod(s) cannot write to the volume when mounted.
 type PreProvisionedReadOnlyVolumeTest struct {
 	CSIDriver driver.PreProvisionedVolumeTestDriver
 	Pods      []PodDetails

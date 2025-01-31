@@ -16,7 +16,7 @@ limitations under the License.
 
 package util
 
-//DONE
+// DONE.
 
 import (
 	"fmt"
@@ -33,24 +33,22 @@ const (
 	GiB = 1024 * 1024 * 1024
 )
 
-// RoundUpBytes rounds up the volume size in bytes upto multiplications of GiB
-// in the unit of Bytes
+// RoundUpBytes converts the volume size in bytes to multiples of GiB, as bytes.
 func RoundUpBytes(volumeSizeBytes int64) int64 {
 	return roundUpSize(volumeSizeBytes, GiB) * GiB
 }
 
-// RoundUpGiB rounds up the volume size in bytes upto multiplications of GiB
-// in the unit of GiB
+// RoundUpGiB rounds up the volume size in bytes to multiples of GiB, as GiB.
 func RoundUpGiB(volumeSizeBytes int64) int64 {
 	return roundUpSize(volumeSizeBytes, GiB)
 }
 
-// BytesToGiB converts Bytes to GiB
+// BytesToGiB converts Bytes to GiB.
 func BytesToGiB(volumeSizeBytes int64) int64 {
 	return volumeSizeBytes / GiB
 }
 
-// GiBToBytes converts GiB to Bytes
+// GiBToBytes converts GiB to Bytes.
 func GiBToBytes(volumeSizeGiB int64) int64 {
 	return volumeSizeGiB * GiB
 }
@@ -78,7 +76,7 @@ func ParseEndpoint(endpoint string) (string, string, error) {
 	return scheme, addr, nil
 }
 
-// TODO: check division by zero and int overflow
+// TODO: check division by zero and int overflow.
 func roundUpSize(volumeSizeBytes int64, allocationUnitBytes int64) int64 {
 	return (volumeSizeBytes + allocationUnitBytes - 1) / allocationUnitBytes
 }

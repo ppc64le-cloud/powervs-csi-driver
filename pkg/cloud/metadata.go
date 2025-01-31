@@ -29,7 +29,7 @@ const (
 	ProviderIDValidLength = 6
 )
 
-// Metadata is info about the instance on which the driver is running
+// Metadata is info about the instance on which the driver is running.
 type Metadata struct {
 	region          string
 	zone            string
@@ -37,22 +37,22 @@ type Metadata struct {
 	pvmInstanceId   string
 }
 
-// GetRegion returns region of the instance
+// GetRegion returns region of the instance.
 func (m *Metadata) GetRegion() string {
 	return m.region
 }
 
-// GetZone returns zone of the instance
+// GetZone returns zone of the instance.
 func (m *Metadata) GetZone() string {
 	return m.zone
 }
 
-// GetCloudInstanceId returns cloud instance id of the instance
+// GetCloudInstanceId returns cloud instance id of the instance.
 func (m *Metadata) GetCloudInstanceId() string {
 	return m.cloudInstanceId
 }
 
-// GetPvmInstanceId returns pvm instance id of the instance
+// GetPvmInstanceId returns pvm instance id of the instance.
 func (m *Metadata) GetPvmInstanceId() string {
 	return m.pvmInstanceId
 }
@@ -85,13 +85,13 @@ func TokenizeProviderID(providerID string) (*Metadata, error) {
 	}, nil
 }
 
-// Get New Metadata Service
+// Get New Metadata Service.
 func NewMetadataService(k8sAPIClient KubernetesAPIClient, kubeconfig string) (MetadataService, error) {
 	klog.Info("Retrieving instance data from Kubernetes API")
 	clientset, err := k8sAPIClient(kubeconfig)
 	if err != nil {
 		klog.Errorf("error creating Kubernetes API client: %v", err)
-		return nil, fmt.Errorf("an error occured during creation of k8s API client: %w", err)
+		return nil, fmt.Errorf("an error occurred during creation of k8s API client: %w", err)
 	}
 	klog.Info("kubernetes API is available")
 	return KubernetesAPIInstanceInfo(clientset)

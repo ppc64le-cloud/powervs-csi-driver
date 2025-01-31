@@ -41,7 +41,7 @@ var (
 	orphanPathRegexp = regexp.MustCompile(orphanPathsPattern)
 )
 
-// getPathsCount get number of slaves for a given device
+// getPathsCount get number of slaves for a given device.
 func getPathsCount(mapper string) (count int, err error) {
 	// TODO: This can be achieved reading the full line processing instead of piped command
 	statusCmd := fmt.Sprintf("dmsetup status --target multipath %s | awk 'BEGIN{RS=\" \";active=0}/[0-9]+:[0-9]+/{dev=1}/A/{if (dev == 1) active++; dev=0} END{ print active }'", mapper)
@@ -54,17 +54,17 @@ func getPathsCount(mapper string) (count int, err error) {
 	return strconv.Atoi(out)
 }
 
-// isDmsetupStatusError check for command failure or empty stdout msg
+// isDmsetupStatusError check for command failure or empty stdout msg.
 func isDmsetupStatusError(msg string) bool {
 	return msg == "" || strings.Contains(msg, "Command failed")
 }
 
-// isMultipathTimeoutError check for timeout or similar error msg
+// isMultipathTimeoutError check for timeout or similar error msg.
 func isMultipathTimeoutError(msg string) bool {
 	return strings.Contains(msg, "timeout") || strings.Contains(msg, "receiving packet")
 }
 
-// retryCleanupDevice retry for maxtries for device Cleanup
+// retryCleanupDevice retry for maxtries for device Cleanup.
 func retryCleanupDevice(dev *Device) error {
 	maxTries := 10
 	var err error
@@ -78,7 +78,7 @@ func retryCleanupDevice(dev *Device) error {
 	return err
 }
 
-// multipathDisableQueuing disable queueing on the multipath device
+// multipathDisableQueuing disable queueing on the multipath device.
 func multipathDisableQueuing(mapper string) error {
 	args := []string{"message", mapper, "0", "fail_if_no_path"}
 	outBytes, err := exec.Command(dmsetupcommand, args...).CombinedOutput()
@@ -92,7 +92,7 @@ func multipathDisableQueuing(mapper string) error {
 	return nil
 }
 
-// multipathRemoveDmDevice remove multipath device via dmsetup
+// multipathRemoveDmDevice remove multipath device via dmsetup.
 func multipathRemoveDmDevice(mapper string) error {
 	if strings.HasSuffix(mapper, "mpatha") {
 		klog.Warning("skipping remove mpatha which is root")
@@ -117,12 +117,12 @@ func multipathRemoveDmDevice(mapper string) error {
 	return nil
 }
 
-// isDmsetupRemoveError check if dmsetup remove command did not return empty, "ok" or no device msg
+// isDmsetupRemoveError check if dmsetup remove command did not return empty, "ok" or no device msg.
 func isDmsetupRemoveError(msg string) bool {
 	return msg != "" && !strings.Contains(msg, "ok") && !strings.Contains(msg, deviceDoesNotExist)
 }
 
-// cleanupOrphanPaths find orphan paths and remove them (best effort)
+// cleanupOrphanPaths find orphan paths and remove them (best effort).
 func cleanupOrphanPaths() {
 	// run multipathd show paths and fetch orphan maps
 	outBytes, err := exec.Command(multipathd, showPathsFormat...).CombinedOutput()

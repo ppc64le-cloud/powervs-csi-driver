@@ -67,7 +67,6 @@ func TestMakeFile(t *testing.T) {
 	if exists, err := mountObj.ExistsPath(targetPath); !exists {
 		t.Fatalf("Expect no error but got: %v", err)
 	}
-
 }
 
 func TestExistsPath(t *testing.T) {
@@ -91,7 +90,6 @@ func TestExistsPath(t *testing.T) {
 	if exists {
 		t.Fatalf("Expected file %s to not exist", targetPath)
 	}
-
 }
 
 func TestGetDeviceName(t *testing.T) {
@@ -109,5 +107,4 @@ func TestGetDeviceName(t *testing.T) {
 	if _, _, err := mountObj.GetDeviceName(targetPath); err != nil {
 		t.Fatalf("Expect no error but got: %v", err)
 	}
-
 }

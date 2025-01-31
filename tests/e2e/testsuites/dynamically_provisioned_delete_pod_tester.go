@@ -17,15 +17,17 @@ limitations under the License.
 package testsuites
 
 import (
-	. "github.com/onsi/ginkgo/v2"
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
+
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/driver"
+
+	. "github.com/onsi/ginkgo/v2"
 )
 
 // DynamicallyProvisionedDeletePodTest will provision required StorageClass and Deployment
-// Testing if the Pod can write and read to mounted volumes
-// Deleting a pod, and again testing if the Pod can write and read to mounted volumes
+// tests if the Pod can write and read to mounted volumes
+// deletes a pod, and again tests if the Pod can write and read to mounted volumes.
 type DynamicallyProvisionedDeletePodTest struct {
 	CSIDriver driver.DynamicPVTestDriver
 	Pod       PodDetails

@@ -23,7 +23,7 @@ import (
 	"regexp"
 )
 
-// findStringSubmatchMap: find and build  the map of named groups
+// findStringSubmatchMap: find and build  the map of named groups.
 func findStringSubmatchMap(s string, r *regexp.Regexp) map[string]string {
 	captures := make(map[string]string)
 	match := r.FindStringSubmatch(s)
@@ -38,7 +38,7 @@ func findStringSubmatchMap(s string, r *regexp.Regexp) map[string]string {
 	return captures
 }
 
-// readFirstLine: read the file line no. 1
+// readFirstLine: read the file line no. 1.
 func readFirstLine(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	a := ""
@@ -68,9 +68,9 @@ func getUUID(pathname string) (string, error) {
 	return readFirstLine(fileName)
 }
 
-// deleteSdDevice: delete the scsi device by writing "1"
+// deleteSdDevice: delete the scsi device by writing "1".
 func deleteSdDevice(deletePath string) (err error) {
-	//deletePath for deleting the device
+	// deletePath for deleting the device
 	err = os.WriteFile(deletePath, []byte("1"), 0644)
 	if err != nil {
 		err = fmt.Errorf("error writing to file %s: %v", deletePath, err)

@@ -24,16 +24,19 @@ import (
 	"time"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/resolver"
+
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog/v2"
+
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/driver"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/util"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/remote"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 const (
@@ -48,7 +51,7 @@ var (
 	endpoint  = fmt.Sprintf("tcp://localhost:%d", port)
 )
 
-// Before runs the driver and creates a CSI client
+// Before runs the driver and creates a CSI client.
 var _ = BeforeSuite(func() {
 	var err error
 
@@ -77,7 +80,7 @@ var _ = BeforeSuite(func() {
 	Expect(csiClient).NotTo(BeNil())
 })
 
-// After stops the driver
+// After stops the driver.
 var _ = AfterSuite(func() {
 	if os.Getenv("TEST_REMOTE_NODE") == "1" {
 		r.TeardownDriver()
@@ -86,13 +89,13 @@ var _ = AfterSuite(func() {
 	}
 })
 
-// CSIClient controller and node clients
+// CSIClient controller and node clients.
 type CSIClient struct {
 	ctrl csi.ControllerClient
 	node csi.NodeClient
 }
 
-// verifyRequiredEnvVars Verify that PowerVS details are set in env
+// verifyRequiredEnvVars Verify that PowerVS details are set in env.
 func verifyRequiredEnvVars(runRemotely bool) {
 	Expect(os.Getenv("IBMCLOUD_API_KEY")).NotTo(BeEmpty(), "Missing env var IBMCLOUD_API_KEY")
 	Expect(os.Getenv("POWERVS_CLOUD_INSTANCE_ID")).NotTo(BeEmpty(), "Missing env var POWERVS_CLOUD_INSTANCE_ID")
@@ -105,7 +108,7 @@ func verifyRequiredEnvVars(runRemotely bool) {
 	}
 }
 
-// newCSIClient creates as CSI client
+// newCSIClient creates as CSI client.
 func newCSIClient() (*CSIClient, error) {
 	resolver.SetDefaultScheme("passthrough")
 	opts := []grpc.DialOption{
@@ -122,7 +125,7 @@ func newCSIClient() (*CSIClient, error) {
 					conn, err = net.Dial(scheme, addr)
 					if err != nil {
 						klog.Warningf("Client failed to dial endpoint %v", endpoint)
-						return false, nil
+						return false, err
 					}
 					klog.Infof("Client succeeded to dial endpoint %v", endpoint)
 					return true, nil

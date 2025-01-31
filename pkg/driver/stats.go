@@ -8,10 +8,11 @@ import (
 	"strings"
 
 	"golang.org/x/sys/unix"
+
 	"k8s.io/kubernetes/pkg/volume/util/fs"
 )
 
-// StatsUtils ...
+// StatsUtils.
 type StatsUtils interface {
 	FSInfo(path string) (int64, int64, int64, int64, int64, int64, error)
 	IsBlockDevice(devicePath string) (bool, error)
@@ -19,11 +20,11 @@ type StatsUtils interface {
 	IsPathNotExist(path string) bool
 }
 
-// VolumeStatUtils ...
+// VolumeStatUtils.
 type VolumeStatUtils struct {
 }
 
-// IsPathNotExist ...
+// IsPathNotExist returns true if a particular path does not exists.
 func (su *VolumeStatUtils) IsPathNotExist(path string) bool {
 	var stat unix.Stat_t
 	err := unix.Stat(path, &stat)
@@ -35,7 +36,7 @@ func (su *VolumeStatUtils) IsPathNotExist(path string) bool {
 	return false
 }
 
-// IsBlockDevice ...
+// IsBlockDevice returns true if the path provided is a block device.
 func (su *VolumeStatUtils) IsBlockDevice(devicePath string) (bool, error) {
 	var stat unix.Stat_t
 	err := unix.Stat(devicePath, &stat)
@@ -46,7 +47,7 @@ func (su *VolumeStatUtils) IsBlockDevice(devicePath string) (bool, error) {
 	return (stat.Mode & unix.S_IFMT) == unix.S_IFBLK, nil
 }
 
-// DeviceInfo ...
+// DeviceInfo returns the size of the block device in bytes.
 func (su *VolumeStatUtils) DeviceInfo(devicePath string) (int64, error) {
 	output, err := exec.Command("blockdev", "--getsize64", devicePath).CombinedOutput()
 	if err != nil {
@@ -61,7 +62,7 @@ func (su *VolumeStatUtils) DeviceInfo(devicePath string) (int64, error) {
 	return gotSizeBytes, nil
 }
 
-// FSInfo ...
+// FSInfo returns the information related to the FS.
 func (su *VolumeStatUtils) FSInfo(path string) (int64, int64, int64, int64, int64, int64, error) {
 	return fs.Info(path)
 }

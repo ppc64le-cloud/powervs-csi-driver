@@ -25,8 +25,10 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
 	"k8s.io/klog/v2"
 	"k8s.io/mount-utils"
+
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/device"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/util"
@@ -34,19 +36,19 @@ import (
 
 const (
 
-	// FSTypeExt2 represents the ext2 filesystem type
+	// FSTypeExt2 represents the ext2 filesystem type.
 	FSTypeExt2 = "ext2"
-	// FSTypeExt3 represents the ext3 filesystem type
+	// FSTypeExt3 represents the ext3 filesystem type.
 	FSTypeExt3 = "ext3"
-	// FSTypeExt4 represents the ext4 filesystem type
+	// FSTypeExt4 represents the ext4 filesystem type.
 	FSTypeExt4 = "ext4"
-	// FSTypeXfs represents te xfs filesystem type
+	// FSTypeXfs represents te xfs filesystem type.
 	FSTypeXfs = "xfs"
-	// default file system type to be used when it is not provided
+	// default file system type to be used when it is not provided.
 	defaultFsType = "ext4"
 
-	// defaultMaxVolumesPerInstance is the limit of volumes can be attached in the PowerVS environment
-	// TODO: rightnow 99 is just a placeholder, this needs to be changed post discussion with PowerVS team
+	// defaultMaxVolumesPerInstance is the limit of volumes can be attached in the PowerVS environment.
+	// TODO: rightnow 99 is just a placeholder, this needs to be changed post discussion with PowerVS team.
 	defaultMaxVolumesPerInstance = 127 - 1
 )
 
@@ -62,7 +64,7 @@ var (
 	}
 )
 
-// nodeService represents the node service of CSI driver
+// nodeService represents the node service of CSI driver.
 type nodeService struct {
 	cloud         cloud.Cloud
 	mounter       Mounter
@@ -73,8 +75,7 @@ type nodeService struct {
 	csi.UnimplementedNodeServer
 }
 
-// newNodeService creates a new node service
-// it will print stack trace and osexit if failed to create the service
+// newNodeService creates a new node service and prints stack trace and osexit if failed to create the service.
 func newNodeService(driverOptions *Options) nodeService {
 	var cloudInstanceId, zone, instanceID string
 
@@ -116,12 +117,12 @@ func (d *nodeService) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	klog.V(4).Infof("NodeStageVolume: called with args %+v", req)
 
 	volumeID := req.GetVolumeId()
-	if len(volumeID) == 0 {
+	if volumeID == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
 	}
 
 	target := req.GetStagingTargetPath()
-	if len(target) == 0 {
+	if target == "" {
 		return nil, status.Error(codes.InvalidArgument, "Staging target not provided")
 	}
 
@@ -205,7 +206,7 @@ func (d *nodeService) stageVolume(wwn string, req *csi.NodeStageVolumeRequest) e
 		return status.Error(codes.InvalidArgument, fmt.Sprintf("mnt is nil within volume capability for volumeID %s", req.VolumeId))
 	}
 	fsType := mnt.GetFsType()
-	if len(fsType) == 0 {
+	if fsType == "" {
 		fsType = defaultFsType
 	}
 	var mountOptions []string
@@ -257,12 +258,12 @@ func (d *nodeService) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 	klog.V(4).Infof("NodeUnstageVolume: called with args %+v", req)
 
 	volumeID := req.GetVolumeId()
-	if len(volumeID) == 0 {
+	if volumeID == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
 	}
 
 	target := req.GetStagingTargetPath()
-	if len(target) == 0 {
+	if target == "" {
 		return nil, status.Error(codes.InvalidArgument, "Staging target not provided")
 	}
 
@@ -305,7 +306,7 @@ func (d *nodeService) nodeUnstageVolume(req *csi.NodeUnstageVolumeRequest) error
 
 	// Delete device
 	klog.V(5).Infof("deleting device %s for volumeID %s", deviceName, volumeID)
-	//check if device is mounted or has holders
+	// check if device is mounted or has holders
 	isDirMounted, err := d.mounter.IsMountPoint(stagingTarget)
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to check likely mount point for vol %s target %q: %v", volumeID, stagingTarget, err)
@@ -322,7 +323,6 @@ func (d *nodeService) nodeUnstageVolume(req *csi.NodeUnstageVolumeRequest) error
 }
 
 func (d *nodeService) deleteDevice(deviceName string) error {
-
 	wwn, err := GetDeviceWWN(deviceName)
 	if err != nil {
 		return err
@@ -345,12 +345,12 @@ func (d *nodeService) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandV
 	klog.V(4).Infof("NodeExpandVolume: called with args %+v", req)
 
 	volumeID := req.GetVolumeId()
-	if len(volumeID) == 0 {
+	if volumeID == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
 	}
 
 	volumePath := req.GetVolumePath()
-	if len(volumePath) == 0 {
+	if volumePath == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume path not provided")
 	}
 
@@ -415,17 +415,17 @@ func (d *nodeService) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandV
 func (d *nodeService) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	klog.V(4).Infof("NodePublishVolume: called with args %+v", req)
 	volumeID := req.GetVolumeId()
-	if len(volumeID) == 0 {
+	if volumeID == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
 	}
 
 	source := req.GetStagingTargetPath()
-	if len(source) == 0 {
+	if source == "" {
 		return nil, status.Error(codes.InvalidArgument, "Staging target not provided")
 	}
 
 	target := req.GetTargetPath()
-	if len(target) == 0 {
+	if target == "" {
 		return nil, status.Error(codes.InvalidArgument, "Target path not provided")
 	}
 
@@ -471,12 +471,12 @@ func (d *nodeService) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 func (d *nodeService) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
 	klog.V(4).Infof("NodeUnpublishVolume: called with args %+v", req)
 	volumeID := req.GetVolumeId()
-	if len(volumeID) == 0 {
+	if volumeID == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
 	}
 
 	target := req.GetTargetPath()
-	if len(target) == 0 {
+	if target == "" {
 		return nil, status.Error(codes.InvalidArgument, "Target path not provided")
 	}
 
@@ -569,7 +569,7 @@ func (d *nodeService) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVo
 
 func (d *nodeService) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
 	klog.V(4).Infof("NodeGetCapabilities: called with args %+v", req)
-	var caps []*csi.NodeServiceCapability
+	caps := make([]*csi.NodeServiceCapability, 0, len(nodeCaps))
 	for _, cap := range nodeCaps {
 		c := &csi.NodeServiceCapability{
 			Type: &csi.NodeServiceCapability_Rpc{
@@ -676,7 +676,7 @@ func (d *nodeService) nodePublishVolumeForFileSystem(req *csi.NodePublishVolumeR
 	}
 
 	fsType := mode.Mount.GetFsType()
-	if len(fsType) == 0 {
+	if fsType == "" {
 		fsType = defaultFsType
 	}
 
@@ -709,7 +709,7 @@ func (d *nodeService) nodePublishVolumeForFileSystem(req *csi.NodePublishVolumeR
 	return nil
 }
 
-// getVolumesLimit returns the limit of volumes that the node supports
+// getVolumesLimit returns the limit of volumes that the node supports.
 func (d *nodeService) getVolumesLimit() int64 {
 	if d.driverOptions.volumeAttachLimit >= 0 {
 		return d.driverOptions.volumeAttachLimit

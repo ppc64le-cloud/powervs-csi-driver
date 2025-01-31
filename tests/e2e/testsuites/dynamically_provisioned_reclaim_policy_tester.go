@@ -17,15 +17,15 @@ limitations under the License.
 package testsuites
 
 import (
-	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud"
-	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/driver"
-
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
+
+	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud"
+	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/driver"
 )
 
 // DynamicallyProvisionedReclaimPolicyTest will provision required PV(s) and PVC(s)
-// Testing the correct behavior for different reclaimPolicies
+// testing the correct behavior for different reclaimPolicies.
 type DynamicallyProvisionedReclaimPolicyTest struct {
 	CSIDriver driver.DynamicPVTestDriver
 	Volumes   []VolumeDetails
