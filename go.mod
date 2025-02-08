@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/IBM-Cloud/power-go-client v1.9.0
 	github.com/IBM/go-sdk-core/v5 v5.18.5
-	github.com/IBM/platform-services-go-sdk v0.73.0
+	github.com/IBM/platform-services-go-sdk v0.74.0
 	github.com/container-storage-interface/spec v1.11.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/google/go-cmp v0.6.0
