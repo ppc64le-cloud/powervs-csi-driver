@@ -45,6 +45,7 @@ var (
 		csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
 		csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME,
 		csi.ControllerServiceCapability_RPC_EXPAND_VOLUME,
+		csi.ControllerServiceCapability_RPC_CLONE_VOLUME,
 	}
 )
 
@@ -173,6 +174,47 @@ func (d *controllerService) CreateVolume(ctx context.Context, req *csi.CreateVol
 		VolumeType:    volumeType,
 	}
 
+	if req.GetVolumeContentSource() != nil {
+		volumeSource := req.VolumeContentSource
+		switch volumeSource.Type.(type) {
+		case *csi.VolumeContentSource_Volume:
+			diskDetails, _ := d.cloud.GetDiskByNamePrefix("clone-" + volName)
+			if diskDetails != nil {
+				err := verifyVolumeDetails(opts, diskDetails)
+				if err != nil {
+					return nil, err
+				}
+				return newCreateVolumeResponse(diskDetails, req.VolumeContentSource), nil
+			}
+			if srcVolume := volumeSource.GetVolume(); srcVolume != nil {
+				srcVolumeID := srcVolume.GetVolumeId()
+				diskDetails, err := d.cloud.GetDiskByID(srcVolumeID)
+				if err != nil {
+					return nil, status.Errorf(codes.Internal, "Could not get the source volume %q: %v", srcVolumeID, err)
+				}
+				if util.GiBToBytes(diskDetails.CapacityGiB) != volSizeBytes {
+					return nil, status.Errorf(codes.Internal, "Cannot clone volume %v, source volume size is not equal to the clone volume", srcVolumeID)
+				}
+				err = verifyVolumeDetails(opts, diskDetails)
+				if err != nil {
+					return nil, err
+				}
+				diskFromSourceVolume, err := d.cloud.CloneDisk(srcVolumeID, volName)
+				if err != nil {
+					return nil, status.Errorf(codes.Internal, "Could not create volume %q: %v", volName, err)
+				}
+
+				cloneDiskDetails, err := d.cloud.GetDiskByID(diskFromSourceVolume.VolumeID)
+				if err != nil {
+					return nil, status.Errorf(codes.Internal, "Could not create volume %q: %v", volName, err)
+				}
+				return newCreateVolumeResponse(cloneDiskDetails, req.VolumeContentSource), nil
+			}
+		default:
+			return nil, status.Errorf(codes.InvalidArgument, "%v not a proper volume source", volumeSource)
+		}
+	}
+
 	// check if disk exists
 	// disk exists only if previous createVolume request fails due to any network/tcp error
 	diskDetails, _ := d.cloud.GetDiskByName(volName)
@@ -186,14 +228,14 @@ func (d *controllerService) CreateVolume(ctx context.Context, req *csi.CreateVol
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Disk already exists and not in expected state")
 		}
-		return newCreateVolumeResponse(diskDetails), nil
+		return newCreateVolumeResponse(diskDetails, req.VolumeContentSource), nil
 	}
 
 	disk, err := d.cloud.CreateDisk(volName, opts)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not create volume %q: %v", volName, err)
 	}
-	return newCreateVolumeResponse(disk), nil
+	return newCreateVolumeResponse(disk, req.VolumeContentSource), nil
 }
 
 func (d *controllerService) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
@@ -455,9 +497,7 @@ func (d *controllerService) ListSnapshots(ctx context.Context, req *csi.ListSnap
 	return nil, status.Error(codes.Unimplemented, "")
 }
 
-func newCreateVolumeResponse(disk *cloud.Disk) *csi.CreateVolumeResponse {
-	var src *csi.VolumeContentSource
-
+func newCreateVolumeResponse(disk *cloud.Disk, src *csi.VolumeContentSource) *csi.CreateVolumeResponse {
 	return &csi.CreateVolumeResponse{
 		Volume: &csi.Volume{
 			VolumeId:      disk.VolumeID,

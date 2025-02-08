@@ -51,6 +51,7 @@ const (
 type powerVSCloud struct {
 	pvmInstancesClient *instance.IBMPIInstanceClient
 	volClient          *instance.IBMPIVolumeClient
+	cloneVolumeClient  *instance.IBMPICloneVolumeClient
 }
 
 type PVMInstance struct {
@@ -96,10 +97,12 @@ func newPowerVSCloud(cloudInstanceID, zone string, debug bool) (Cloud, error) {
 	backgroundContext := context.Background()
 	volClient := instance.NewIBMPIVolumeClient(backgroundContext, piSession, cloudInstanceID)
 	pvmInstancesClient := instance.NewIBMPIInstanceClient(backgroundContext, piSession, cloudInstanceID)
+	cloneVolumeClient := instance.NewIBMPICloneVolumeClient(backgroundContext, piSession, cloudInstanceID)
 
 	return &powerVSCloud{
 		pvmInstancesClient: pvmInstancesClient,
 		volClient:          volClient,
+		cloneVolumeClient:  cloneVolumeClient,
 	}, nil
 }
 
@@ -209,6 +212,36 @@ func (p *powerVSCloud) ResizeDisk(volumeID string, reqSize int64) (newSize int64
 	return int64(*v.Size), nil
 }
 
+func (p *powerVSCloud) CloneDisk(sourceVolumeID string, cloneVolumeName string) (disk *Disk, err error) {
+	_, err = p.GetDiskByID(sourceVolumeID)
+	if err != nil {
+		return nil, err
+	}
+	cloneVolumeReq := &models.VolumesCloneAsyncRequest{
+		Name:      &cloneVolumeName,
+		VolumeIDs: []string{sourceVolumeID},
+	}
+	cloneTaskRef, err := p.cloneVolumeClient.Create(cloneVolumeReq)
+	if err != nil {
+		return nil, err
+	}
+	cloneTaskId := cloneTaskRef.CloneTaskID
+	err = p.WaitForCloneStatus(*cloneTaskId)
+	if err != nil {
+		return nil, err
+	}
+	clonedVolumeDetails, err := p.cloneVolumeClient.Get(*cloneTaskId)
+	if err != nil {
+		return nil, err
+	}
+	clonedVolumeID := clonedVolumeDetails.ClonedVolumes[0].ClonedVolumeID
+	err = p.WaitForVolumeState(clonedVolumeID, VolumeAvailableState)
+	if err != nil {
+		return nil, err
+	}
+	return p.GetDiskByID(clonedVolumeID)
+}
+
 func (p *powerVSCloud) WaitForVolumeState(volumeID, state string) error {
 	ctx := context.Background()
 	return wait.PollUntilContextTimeout(ctx, PollInterval, PollTimeout, true, func(ctx context.Context) (bool, error) {
@@ -221,6 +254,21 @@ func (p *powerVSCloud) WaitForVolumeState(volumeID, state string) error {
 	})
 }
 
+func (p *powerVSCloud) WaitForCloneStatus(cloneTaskId string) error {
+	err := wait.PollImmediate(PollInterval, PollTimeout, func() (bool, error) {
+		c, err := p.cloneVolumeClient.Get(cloneTaskId)
+		if err != nil {
+			return false, err
+		}
+		spew.Dump(*c)
+		return *c.Status == "completed", nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *powerVSCloud) GetDiskByName(name string) (disk *Disk, err error) {
 	vols, err := p.volClient.GetAll()
 	if err != nil {
@@ -228,6 +276,27 @@ func (p *powerVSCloud) GetDiskByName(name string) (disk *Disk, err error) {
 	}
 	for _, v := range vols.Volumes {
 		if name == *v.Name {
+			return &Disk{
+				Name:        *v.Name,
+				DiskType:    *v.DiskType,
+				VolumeID:    *v.VolumeID,
+				WWN:         strings.ToLower(*v.Wwn),
+				Shareable:   *v.Shareable,
+				CapacityGiB: int64(*v.Size),
+			}, nil
+		}
+	}
+
+	return nil, ErrNotFound
+}
+
+func (p *powerVSCloud) GetDiskByNamePrefix(namePrefix string) (disk *Disk, err error) {
+	vols, err := p.volClient.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range vols.Volumes {
+		if strings.HasPrefix(*v.Name, namePrefix) {
 			return &Disk{
 				Name:        *v.Name,
 				DiskType:    *v.DiskType,
